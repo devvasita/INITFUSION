@@ -24,6 +24,7 @@ const style = {
   overflow: "auto",
 };
 
+// Basic unsplash api
 const API_URL = "https://api.unsplash.com/search/photos";
 
 const Home = () => {
@@ -43,7 +44,7 @@ const Home = () => {
   };
 
   const fetchImages = async () => {
-    // used try and catch for error handling
+    // used try and catch block for error handling
     try {
       const { data } = await axios.get(
         `${API_URL}?query=${
@@ -121,6 +122,7 @@ const Home = () => {
                 }}
                 className="hvr"
               >
+                {/* Included lazyload for image */}
                 <LazyLoadImage
                   src={item.urls.regular}
                   width="100%"
@@ -140,6 +142,7 @@ const Home = () => {
           <Pagination count={10} color="primary" onChange={handleChange} />
         </Box>
 
+        {/* model for view the image and description */}
         <Modal open={open} onClose={handleClose}>
           <Box sx={style}>
             <img
