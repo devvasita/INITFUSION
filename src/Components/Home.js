@@ -1,10 +1,10 @@
 import axios from "axios";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { Container, Grid, TextField } from "@mui/material";
+import { Container, Grid, TextField, CircularProgress } from "@mui/material";
 import Card from "@mui/material/Card";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import Modal from "@mui/material/Modal";
@@ -31,6 +31,7 @@ const Home = () => {
   const searchInput = useRef(null);
   const [page, setPage] = useState(1);
   const [modeldata, setModeldata] = useState();
+  const [loading, setLoading] = useState(false);
   const [picture, setPicture] = useState([]);
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(true);
@@ -43,9 +44,10 @@ const Home = () => {
     setPage(value);
   };
 
-  const fetchImages = async () => {
+  const fetchImages = useCallback(async () => {
     // used try and catch block for error handling
     try {
+      setLoading(true);
       const { data } = await axios.get(
         `${API_URL}?query=${
           searchInput.current.value ? searchInput.current.value : "animal"
@@ -55,12 +57,14 @@ const Home = () => {
       setPicture(data.results);
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [page]);
 
   useEffect(() => {
     fetchImages();
-  }, [page]);
+  }, [page, fetchImages]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -102,40 +106,57 @@ const Home = () => {
             placeholder="Search Image...."
           />
         </form>
-        <Grid container spacing={3} minHeight={"100vh"}>
-          {picture.map((item) => (
-            <Grid
-              item
-              xs={12}
-              sm={6}
-              md={4}
-              onClick={() => {
-                handleOpen();
-                getModelImage(item);
-              }}
-            >
-              <Card
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  cursor: "pointer",
+
+        {loading ? (
+          <Box
+            sx={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "100vh",
+            }}
+          >
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Grid container spacing={5} minHeight={"100vh"} alignItems="stretch">
+            {picture.map((item) => (
+              <Grid
+                item
+                xs={12}
+                sm={6}
+                md={4}
+                key={item.id}
+                onClick={() => {
+                  handleOpen();
+                  getModelImage(item);
                 }}
-                className="hvr"
               >
-                {/* Included lazyload for image */}
-                <LazyLoadImage
-                  src={item.urls.regular}
-                  width="100%"
-                  height={400}
-                  alt="image"
-                  placeholderSrc={item.urls.thumb}
-                  style={{ objectFit: "cover", objectPosition: "center" }}
-                  effect="blur"
-                />
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+                <Card
+                  sx={{
+                    width: "100%",
+                    height: "100%",
+                    cursor: "pointer",
+                    padding: "10px 10px 2px 10px",
+                  }}
+                  className="hvr"
+                >
+                  {/* Included lazyload for image */}
+                  <LazyLoadImage
+                    src={item.urls.regular}
+                    width="100%"
+                    height={400}
+                    alt="image"
+                    placeholderSrc={item.urls.thumb}
+                    style={{ objectFit: "cover", objectPosition: "center" }}
+                    effect="blur"
+                  />
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        )}
 
         {/*Added pagination   */}
         <Box width="100%" display="flex" justifyContent="center" my={4}>
@@ -150,6 +171,7 @@ const Home = () => {
               height="60%"
               width="100%"
               style={{ objectFit: "cover" }}
+              alt="gallery"
             />
             <Box
               display="flex"
