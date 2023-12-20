@@ -4,25 +4,12 @@ import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { Container, Grid, TextField, CircularProgress } from "@mui/material";
+import { Container, Grid, CircularProgress, TextField } from "@mui/material";
 import Card from "@mui/material/Card";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import Modal from "@mui/material/Modal";
-import Avatar from "@mui/material/Avatar";
 import Pagination from "@mui/material/Pagination";
-
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 400,
-  height: 500,
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  p: 4,
-  overflow: "auto",
-};
+import ModalContent from "./ModalContent"; // Import the ModalContent component
 
 // Basic unsplash api
 const API_URL = "https://api.unsplash.com/search/photos";
@@ -56,7 +43,7 @@ const Home = () => {
 
       setPicture(data.results);
     } catch (error) {
-      console.log(error);
+      alert("Please search relevant images...");
     } finally {
       setLoading(false);
     }
@@ -73,6 +60,7 @@ const Home = () => {
 
   const getModelImage = (data) => {
     setModeldata(data);
+    handleOpen();
   };
 
   return (
@@ -93,16 +81,11 @@ const Home = () => {
       </Box>
       <Container sx={{ mt: 8 }}>
         <form onSubmit={handleSearch} style={{ margin: "20px 0px" }}>
-          <input
-            ref={searchInput}
-            type="search"
-            style={{
-              width: "100%",
-              padding: "10px 10px",
-              borderRadius: "10px",
-              outline: "none",
-              border: "1px solid",
-            }}
+          <TextField
+            inputRef={searchInput}
+            fullWidth
+            variant="outlined"
+            margin="normal"
             placeholder="Search Image...."
           />
         </form>
@@ -128,21 +111,17 @@ const Home = () => {
                 sm={6}
                 md={4}
                 key={item.id}
-                onClick={() => {
-                  handleOpen();
-                  getModelImage(item);
-                }}
+                onClick={() => getModelImage(item)}
               >
                 <Card
                   sx={{
                     width: "100%",
                     height: "100%",
                     cursor: "pointer",
-                    padding: "10px 10px 2px 10px",
+                    padding: "10px 10px 0px 10px",
                   }}
                   className="hvr"
                 >
-                  {/* Included lazyload for image */}
                   <LazyLoadImage
                     src={item.urls.regular}
                     width="100%"
@@ -158,45 +137,14 @@ const Home = () => {
           </Grid>
         )}
 
-        {/*Added pagination   */}
+        {/* Added pagination */}
         <Box width="100%" display="flex" justifyContent="center" my={4}>
           <Pagination count={10} color="primary" onChange={handleChange} />
         </Box>
 
-        {/* model for view the image and description */}
+        {/* Modal for viewing the image and description */}
         <Modal open={open} onClose={handleClose}>
-          <Box sx={style}>
-            <img
-              src={modeldata?.urls?.raw}
-              height="60%"
-              width="100%"
-              style={{ objectFit: "cover" }}
-              alt="gallery"
-            />
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-              mt={3}
-            >
-              <Typography sx={{ mt: 2 }}>
-                <b>Uploaded By :</b> {modeldata && modeldata?.user?.first_name}
-              </Typography>
-              <Avatar
-                alt="user image"
-                src={modeldata && modeldata?.user?.profile_image?.medium}
-                sx={{ height: 50, width: 50 }}
-              />
-            </Box>
-
-            <Typography sx={{ mt: 2 }}>
-              <b>Description</b>
-              <br />
-              {modeldata
-                ? modeldata.description
-                : "No description available...."}
-            </Typography>
-          </Box>
+          <ModalContent modeldata={modeldata} onClose={handleClose} />
         </Modal>
       </Container>
     </>
